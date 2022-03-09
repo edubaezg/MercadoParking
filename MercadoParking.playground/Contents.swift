@@ -19,3 +19,5 @@ struct Vehicle: Parkable, Hashable {
         return lhs.plate == rhs.plate
     }
 }
+
+
