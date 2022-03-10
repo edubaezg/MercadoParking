@@ -1,4 +1,5 @@
 import UIKit
+import Foundation
 
 // MARK: - Enums
 // Hour fee for each vehicle type
@@ -24,26 +25,38 @@ enum VehicleType {
 
 // MARK: - Protocols
 protocol Parkable {
+    
+    // MARK: Properties
     var plate: String { get }
     var type: VehicleType { get }
     var checkInTime: Date { get }
+    // discountCard it's an optional property, since a vehicle may or may not have a discount card.
+    var discountCard: String? { get }
     var parkedTime: Int { get }
 }
 
 // MARK: - Structs
 struct Parking {
+    
+    // Vehicles is defined as a Set because a set cannot contain duplicates,
+    // just like Parking can not have duplicate vehicles.
+    
+    // MARK: Properties
     var vehicles: Set<Vehicle> = []
 }
 
 struct Vehicle: Parkable, Hashable {
+
+    // Properties must be added both in the protocol and the structure that implements it,
+    // so that the structure conforms to the protocol.
+    
+    // MARK: Properties
     let plate: String
     let type: VehicleType
     let checkInTime: Date
+    var discountCard: String?
     
-    var parkedTime: Int {
-        Calendar.current.dateComponents([.minute], from: checkInTime, to: Date()).minute ?? 0
-    }
-    
+    // MARK: Methods
     func hash(into hasher: inout Hasher) {
         hasher.combine(plate)
     }
@@ -53,21 +66,27 @@ struct Vehicle: Parkable, Hashable {
     }
 }
 
+extension Vehicle {
+    var parkedTime: Int {
+        Calendar.current.dateComponents([.minute], from: checkInTime, to: Date()).minute ?? 0
+    }
+}
+
 // MARK: - Actions
 var mercadoParking = Parking()
 
 // Register vehicles
-let car = Vehicle(plate: "AA111AA", type: .car, checkInTime: Date())
-let moto = Vehicle(plate: "B222BBB", type: .moto, checkInTime: Date())
-let miniBus = Vehicle(plate: "CC333CC", type: .miniBus, checkInTime: Date())
-let bus = Vehicle( plate: "DD444DD", type: .bus, checkInTime: Date())
+let car = Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_001")
+let moto = Vehicle(plate: "B222BBB", type: VehicleType.moto, checkInTime: Date(), discountCard: nil)
+let miniBus = Vehicle(plate: "CC333CC", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil)
+let bus = Vehicle(plate: "DD444DD", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_002")
 print(mercadoParking.vehicles.insert(car).inserted)
 print(mercadoParking.vehicles.insert(moto).inserted)
 print(mercadoParking.vehicles.insert(miniBus).inserted)
 print(mercadoParking.vehicles.insert(bus).inserted)
 
 // Register vehicle with repetead plate
-let car2 = Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date())
+let car2 = Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_003")
 print(mercadoParking.vehicles.insert(car2).inserted)
 
 // Remove vehicle
