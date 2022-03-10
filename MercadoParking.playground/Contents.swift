@@ -62,6 +62,20 @@ struct Parking {
         vehicles.insert(vehicle)
         onFinish(true)
     }
+    
+    // Method has to be declared as mutating in order to be able to modify the vehicles Set.
+    mutating func checkOutVehicle(_ plate: String, onSuccess: (Int) -> Void, onError: () -> Void) {
+        
+        //Check if there is a vehicle parked with the received plate
+        guard let vehicle = vehicles.first(where: { $0.plate == plate }) else {
+            onError()
+            return
+        }
+        
+        // If the vehicle exists, remove the vehicle from Parking, and call the onSuccess handler.
+        vehicles.remove(vehicle)
+        onSuccess(Int()) // MARK: EDU: Entero provisorio, despues se cambia por el calculo de la tarifa 
+    }
 }
 
 struct Vehicle: Parkable, Hashable {
@@ -83,6 +97,9 @@ struct Vehicle: Parkable, Hashable {
     static func ==(lhs: Vehicle, rhs: Vehicle) -> Bool {
         return lhs.plate == rhs.plate
     }
+    
+    
+    
 }
 
 extension Vehicle {
