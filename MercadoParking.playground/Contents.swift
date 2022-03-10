@@ -30,7 +30,7 @@ protocol Parkable {
     var plate: String { get }
     var type: VehicleType { get }
     var checkInTime: Date { get }
-    // discountCard it's an optional property, since a vehicle may or may not have a discount card.
+    // discountCard is an optional property, since a vehicle may or may not have a discount card.
     var discountCard: String? { get }
     var parkedTime: Int { get }
 }
@@ -43,6 +43,24 @@ struct Parking {
     
     // MARK: Properties
     var vehicles: Set<Vehicle> = []
+    let maxVehicles: Int = 20
+    
+    // MARK: Methods
+    mutating func checkInVehicle(_ vehicle: Vehicle, onFinish: (Bool) -> Void) {
+        
+        //Check if there's space available in the Parking.
+        guard vehicles.count < maxVehicles else {
+            onFinish(false)
+            return
+        }
+        // Check that the vehicle is not already inside the Parking.
+        guard !vehicles.contains(vehicle) else {
+            onFinish(false)
+            return
+        }
+        // If the vehicle is correctly checked-in, call the completion handler.
+        onFinish(true)
+    }
 }
 
 struct Vehicle: Parkable, Hashable {
@@ -67,6 +85,7 @@ struct Vehicle: Parkable, Hashable {
 }
 
 extension Vehicle {
+    // Computed property that calculates the time elapsed since check-in
     var parkedTime: Int {
         Calendar.current.dateComponents([.minute], from: checkInTime, to: Date()).minute ?? 0
     }
@@ -80,14 +99,18 @@ let car = Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date(), 
 let moto = Vehicle(plate: "B222BBB", type: VehicleType.moto, checkInTime: Date(), discountCard: nil)
 let miniBus = Vehicle(plate: "CC333CC", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil)
 let bus = Vehicle(plate: "DD444DD", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_002")
+// Check that vehicles have been correctly inserted
 print(mercadoParking.vehicles.insert(car).inserted)
 print(mercadoParking.vehicles.insert(moto).inserted)
 print(mercadoParking.vehicles.insert(miniBus).inserted)
 print(mercadoParking.vehicles.insert(bus).inserted)
 
-// Register vehicle with repetead plate
+// Register vehicle with repeated plate
 let car2 = Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_003")
 print(mercadoParking.vehicles.insert(car2).inserted)
 
 // Remove vehicle
 mercadoParking.vehicles.remove(moto)
+print(!mercadoParking.vehicles.contains(car))
+
+print(mercadoParking.vehicles.contains(moto))
