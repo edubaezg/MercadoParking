@@ -47,7 +47,6 @@ struct Parking {
     
     // MARK: Methods
     mutating func checkInVehicle(_ vehicle: Vehicle, onFinish: (Bool) -> Void) {
-        
         //Check if there's space available in the Parking.
         guard vehicles.count < maxVehicles else {
             onFinish(false)
@@ -58,7 +57,8 @@ struct Parking {
             onFinish(false)
             return
         }
-        // If the vehicle is correctly checked-in, call the completion handler.
+        // If the vehicle is correctly checked-in, insert vehicle and call the completion handler.
+        vehicles.insert(vehicle)
         onFinish(true)
     }
 }
@@ -117,12 +117,16 @@ let vehicles: [Vehicle] = [
     Vehicle(plate: "OO453US", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "TG498KS", type: VehicleType.miniBus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_010"),
     // Register vehicle with repeated plate
-    Vehicle(plate: "TG498KS", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil)
+    Vehicle(plate: "TG498KS", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "TG498K5", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "TG498K8", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil)
 ]
 
 // Check that vehicles have been correctly inserted
 vehicles.forEach { vehicle in
-    print(mercadoParking.vehicles.insert(vehicle).inserted)
+    mercadoParking.checkInVehicle(vehicle) { isInserted in
+        print(isInserted ? "Welcome to AlkeParking!" : "Sorry, the check-in failed")
+    }
 }
 
 // Remove vehicle
