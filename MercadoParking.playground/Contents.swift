@@ -95,22 +95,38 @@ extension Vehicle {
 var mercadoParking = Parking()
 
 // Register vehicles
-let car = Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_001")
-let moto = Vehicle(plate: "B222BBB", type: VehicleType.moto, checkInTime: Date(), discountCard: nil)
-let miniBus = Vehicle(plate: "CC333CC", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil)
-let bus = Vehicle(plate: "DD444DD", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_002")
-// Check that vehicles have been correctly inserted
-print(mercadoParking.vehicles.insert(car).inserted)
-print(mercadoParking.vehicles.insert(moto).inserted)
-print(mercadoParking.vehicles.insert(miniBus).inserted)
-print(mercadoParking.vehicles.insert(bus).inserted)
+let vehicles: [Vehicle] = [
+    Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_001"),
+    Vehicle(plate: "B222BBB", type: VehicleType.moto, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "CC333CC", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "DD444DD", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_002"),
+    Vehicle(plate: "AA111BB", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_003"),
+    Vehicle(plate: "B222CCC", type: VehicleType.moto, checkInTime: Date(), discountCard: "DISCOUNT_CARD_004"),
+    Vehicle(plate: "CC333DD", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "DD444EE", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_005"),
+    Vehicle(plate: "AA111CC", type: VehicleType.car, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "B222DDD", type: VehicleType.moto, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "CC333EE", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "DD444GG", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_006"),
+    Vehicle(plate: "AA111DD", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_007"),
+    Vehicle(plate: "B222EEE", type: VehicleType.moto, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "CC333FF", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "FF666FF", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "GG354JK", type: VehicleType.miniBus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_008"),
+    Vehicle(plate: "BB495JK", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "OO453US", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "TG498KS", type: VehicleType.miniBus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_010"),
+    // Register vehicle with repeated plate
+    Vehicle(plate: "TG498KS", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil)
+]
 
-// Register vehicle with repeated plate
-let car2 = Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_003")
-print(mercadoParking.vehicles.insert(car2).inserted)
+// Check that vehicles have been correctly inserted
+vehicles.forEach { vehicle in
+    print(mercadoParking.vehicles.insert(vehicle).inserted)
+}
 
 // Remove vehicle
-mercadoParking.vehicles.remove(moto)
-print(!mercadoParking.vehicles.contains(car))
+mercadoParking.vehicles.remove(vehicles[0])
+print(!mercadoParking.vehicles.contains(vehicles[1]))
 
-print(mercadoParking.vehicles.contains(moto))
+print(mercadoParking.vehicles.contains(vehicles[0]))
