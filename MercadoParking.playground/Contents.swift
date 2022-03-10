@@ -1,4 +1,3 @@
-import UIKit
 import Foundation
 
 // MARK: - Enums
@@ -52,11 +51,13 @@ struct Parking {
             onFinish(false)
             return
         }
+        
         // Check that the vehicle is not already inside the Parking.
         guard !vehicles.contains(vehicle) else {
             onFinish(false)
             return
         }
+        
         // If the vehicle is correctly checked-in, insert vehicle and call the completion handler.
         vehicles.insert(vehicle)
         onFinish(true)
@@ -94,7 +95,6 @@ extension Vehicle {
 // MARK: - Actions
 var mercadoParking = Parking()
 
-// Register vehicles
 let vehicles: [Vehicle] = [
     Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_001"),
     Vehicle(plate: "B222BBB", type: VehicleType.moto, checkInTime: Date(), discountCard: nil),
