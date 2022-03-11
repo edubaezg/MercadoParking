@@ -8,6 +8,7 @@ enum ParkingSettings: Int {
     case additionalTimeBlockInMinutes = 15
 }
 
+// Settings for discount card
 enum DiscountCardSettings: Int {
     case discountPercentage = 15
 }
@@ -54,9 +55,10 @@ struct Parking {
     // Vehicles is defined as a Set because a set cannot contain duplicates,
     // just like Parking can not have duplicate vehicles.
     
-    // MARK: Properties
+    // MARK: Parking Properties
     var vehicles: Set<Vehicle> = []
     let maxVehicles: Int = ParkingSettings.maxVehicles.rawValue
+    var totalEarnings = (vehiclesCheckedOut: 0, cummulativeEarnings: 0)
 }
 
 // MARK: Parking Methods
@@ -92,19 +94,23 @@ extension Parking {
         let totalFee = calculateFee(
             type: vehicle.type,
             parkedTime: vehicle.parkedTime,
-            hasDiscount: vehicle.discountCard != nil
+            hasDiscountCard: vehicle.discountCard != nil
         )
         
         // If the vehicle exists, remove the vehicle from Parking, and call the onSuccess handler.
         vehicles.remove(vehicle)
         onSuccess(totalFee)
+        // Add a vehicle to the checked out vehicles count and the earnings to the total earnings count.
+        totalEarnings.vehiclesCheckedOut += 1
+        totalEarnings.cummulativeEarnings += totalFee
     }
     
-    func calculateFee(type: VehicleType, parkedTime: Int, hasDiscount: Bool) -> Int {
+    func calculateFee(type: VehicleType, parkedTime: Int, hasDiscountCard: Bool) -> Int {
         var totalFee: Int = type.hourFee
         let initialHoursInMinutes: Int = ParkingSettings.initialHoursInMinutes.rawValue
         let additionalTimeBlockInMinutes: Int = ParkingSettings.additionalTimeBlockInMinutes.rawValue
         let additionalTimeBlockFee = Fee.additionalTimeBlock.rawValue
+        let discountCardPercentage = DiscountCardSettings.discountPercentage.rawValue
         
         // If parked time is grater than initial hours, calculate additional time block
         if parkedTime > initialHoursInMinutes {
@@ -120,15 +126,22 @@ extension Parking {
             // Calculate total fee plus total fee for additional time blocks
             totalFee += additionalTimeBlockRounded * additionalTimeBlockFee
         }
-        
-        // TODO: Calcular descuento si hasDiscount es true
-        print("hasDiscount \(hasDiscount)")
+
+        // If the vehicle has a Discount Card, apply discount
+        if hasDiscountCard {
+            let discountAmount = (totalFee * discountCardPercentage) / 100
+            totalFee -= discountAmount
+        }
+
         return totalFee
+    }
+    
+    func showTotalEarnings() {
+        print("\(totalEarnings.vehiclesCheckedOut) vehicles have checked out and have earnings of $\(totalEarnings.cummulativeEarnings)")
     }
     
     func listVehicles(completion: ([String]) -> ()) {
         let parkedVehiclePlates: [String] = vehicles.map { vehicle in vehicle.plate }
-        
         completion(parkedVehiclePlates)
     }
 }
@@ -195,21 +208,32 @@ let vehicles: [Vehicle] = [
     Vehicle(plate: "GB448KR", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil)
 ]
 
-// Check that vehicles have been correctly inserted
+// MARK: CHECK IN - Check that vehicles have been correctly inserted
 vehicles.forEach { vehicle in
     mercadoParking.checkInVehicle(vehicle) { isInserted in
         print(isInserted ? "Welcome to MercadoParking!" : "Sorry, the check-in failed")
     }
 }
 
-// Check out vehicle and get total fee
+// MARK: CHECK OUT - Check out vehicle and get total fee
+// Checkout vehicle without discount card
 mercadoParking.checkOutVehicle(vehicles[1].plate) { totalFee in
     print("Your fee is $\(totalFee). Come back soon")
 } onError: {
     print("Sorry, the check-out failed")
 }
 
-// List parked vehicle plates
+// Checkout vehicle with discount card
+mercadoParking.checkOutVehicle(vehicles[5].plate) { totalFee in
+    print("Your fee is $\(totalFee). Come back soon")
+} onError: {
+    print("Sorry, the check-out failed")
+}
+
+// MARK: TOTAL EARNINGS - Get total earnings from check out vehicles
+mercadoParking.showTotalEarnings()
+
+// MARK: LIST VEHICLES - List parked vehicle plates
 mercadoParking.listVehicles { parkedVehiclePlates in
     if parkedVehiclePlates.count > 0 {
         parkedVehiclePlates.forEach { vehiclePlate in
