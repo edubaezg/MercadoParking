@@ -46,9 +46,6 @@ protocol Parkable {
     // discountCard is an optional property, since a vehicle may or may not have a discount card.
     var discountCard: String? { get }
     var parkedTime: Int { get }
-    
-    // MARK: Methods
-    func calculateFee(hasDiscount: Bool) -> Int
 }
 
 // MARK: - Structs
@@ -60,11 +57,13 @@ struct Parking {
     // MARK: Properties
     var vehicles: Set<Vehicle> = []
     let maxVehicles: Int = ParkingSettings.maxVehicles.rawValue
-    
-    // MARK: Methods
+}
+
+// MARK: Parking Methods
+extension Parking {
     mutating func checkInVehicle(_ vehicle: Vehicle, onFinish: (Bool) -> Void) {
         // Check if there's space available in the Parking.
-        guard vehicles.count < maxVehicles else {
+        guard vehicles.count <= maxVehicles else {
             onFinish(false)
             return
         }
@@ -90,11 +89,49 @@ struct Parking {
         }
         
         // Calculate fee for check out
-        let totalFee = vehicle.calculateFee(hasDiscount: vehicle.discountCard != nil)
+        let totalFee = calculateFee(
+            type: vehicle.type,
+            parkedTime: vehicle.parkedTime,
+            hasDiscount: vehicle.discountCard != nil
+        )
         
         // If the vehicle exists, remove the vehicle from Parking, and call the onSuccess handler.
         vehicles.remove(vehicle)
         onSuccess(totalFee)
+    }
+    
+    func calculateFee(type: VehicleType, parkedTime: Int, hasDiscount: Bool) -> Int {
+        var totalFee: Int = type.hourFee
+        let initialHoursInMinutes: Int = ParkingSettings.initialHoursInMinutes.rawValue
+        let additionalTimeBlockInMinutes: Int = ParkingSettings.additionalTimeBlockInMinutes.rawValue
+        let additionalTimeBlockFee = Fee.additionalTimeBlock.rawValue
+        
+        // If parked time is grater than initial hours, calculate additional time block
+        if parkedTime > initialHoursInMinutes {
+            // Get remaining minutes without initial hours
+            let remainingMinutes = parkedTime - initialHoursInMinutes
+            
+            // Get additional time blocks
+            let additionalTimeBlock = Double(remainingMinutes) / Double(additionalTimeBlockInMinutes)
+            
+            // Get additional time blocks rounded up
+            let additionalTimeBlockRounded = Int(additionalTimeBlock.rounded(.up))
+            
+            // Calculate total fee plus total fee for additional time blocks
+            totalFee += additionalTimeBlockRounded * additionalTimeBlockFee
+        }
+        
+        // TODO: Calcular descuento si hasDiscount es true
+        print("hasDiscount \(hasDiscount)")
+        return totalFee
+    }
+    
+    func listVehicles(completion: ([String]?) -> ()) {
+        let vehiclePlates: [String]? = vehicles.map { vehicle in
+            vehicle.plate
+        }
+        // print("vehiclePlates \(vehiclePlates)")
+        completion([""])
     }
 }
 
@@ -120,40 +157,11 @@ struct Vehicle: Parkable, Hashable {
     
 }
 
-// MARK: Computed properties
+// MARK: Vehicle Computed properties
 extension Vehicle {
     // Computed property that calculates the time elapsed since check-in
     var parkedTime: Int {
         Calendar.current.dateComponents([.minute], from: checkInTime, to: Date()).minute ?? 0
-    }
-}
-
-// MARK: Methods
-extension Vehicle {
-    func calculateFee(hasDiscount: Bool) -> Int {
-        var totalFee: Int = type.hourFee
-        let initialHoursInMinutes: Int = ParkingSettings.initialHoursInMinutes.rawValue
-        let additionalTimeBlockInMinutes: Int = ParkingSettings.additionalTimeBlockInMinutes.rawValue
-        let additionalTimeBlockFee = Fee.additionalTimeBlock.rawValue
-        
-        // If parked time is grater than initial hours, calculate additional time block
-        if parkedTime > initialHoursInMinutes {
-            // Get remaining minutes without initial hours
-            let remainingMinutes = parkedTime - initialHoursInMinutes
-            
-            // Get additional time blocks
-            let additionalTimeBlock = Double(remainingMinutes) / Double(additionalTimeBlockInMinutes)
-            
-            // Get additional time blocks rounded up
-            let additionalTimeBlockRounded = Int(additionalTimeBlock.rounded(.up))
-            
-            // Calculate total fee plus total fee for additional time blocks
-            totalFee += additionalTimeBlockRounded * additionalTimeBlockFee
-        }
-        
-        // TODO: Calcular descuento si hasDiscount es true
-        print("hasDiscount \(hasDiscount)")
-        return totalFee
     }
 }
 
@@ -203,3 +211,8 @@ mercadoParking.checkOutVehicle(vehicles[3].plate) { totalFee in
     print("Sorry, the check-out failed")
 }
 
+// List parked vehicle plate
+mercadoParking.listVehicles { parkedVehiclePlate in
+    guard let parkedVehiclePlate = parkedVehiclePlate else { return }
+    print("parkedVehiclePlate \(parkedVehiclePlate)")
+}
