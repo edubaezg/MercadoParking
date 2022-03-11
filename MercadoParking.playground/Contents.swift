@@ -126,12 +126,10 @@ extension Parking {
         return totalFee
     }
     
-    func listVehicles(completion: ([String]?) -> ()) {
-        let vehiclePlates: [String]? = vehicles.map { vehicle in
-            vehicle.plate
-        }
-        // print("vehiclePlates \(vehiclePlates)")
-        completion([""])
+    func listVehicles(completion: ([String]) -> ()) {
+        let parkedVehiclePlates: [String] = vehicles.map { vehicle in vehicle.plate }
+        
+        completion(parkedVehiclePlates)
     }
 }
 
@@ -200,19 +198,24 @@ let vehicles: [Vehicle] = [
 // Check that vehicles have been correctly inserted
 vehicles.forEach { vehicle in
     mercadoParking.checkInVehicle(vehicle) { isInserted in
-        print(isInserted ? "Welcome to AlkeParking!" : "Sorry, the check-in failed")
+        print(isInserted ? "Welcome to MercadoParking!" : "Sorry, the check-in failed")
     }
 }
 
 // Check out vehicle and get total fee
-mercadoParking.checkOutVehicle(vehicles[3].plate) { totalFee in
+mercadoParking.checkOutVehicle(vehicles[1].plate) { totalFee in
     print("Your fee is $\(totalFee). Come back soon")
 } onError: {
     print("Sorry, the check-out failed")
 }
 
-// List parked vehicle plate
-mercadoParking.listVehicles { parkedVehiclePlate in
-    guard let parkedVehiclePlate = parkedVehiclePlate else { return }
-    print("parkedVehiclePlate \(parkedVehiclePlate)")
+// List parked vehicle plates
+mercadoParking.listVehicles { parkedVehiclePlates in
+    if parkedVehiclePlates.count > 0 {
+        parkedVehiclePlates.forEach { vehiclePlate in
+            print("Parked vehicle plate: \(vehiclePlate)")
+        }
+    } else {
+        print("There are still no vehicles parked in MercadoParking")
+    }
 }
