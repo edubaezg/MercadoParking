@@ -128,7 +128,7 @@ extension Parking {
     }
     
     func showTotalEarnings() {
-        print("\(totalEarnings.vehiclesCheckedOut) vehicles have checked out and have earnings of $\(totalEarnings.cummulativeEarnings)")
+        print("💰 \(totalEarnings.vehiclesCheckedOut) vehicles have checked out and have earnings of $\(totalEarnings.cummulativeEarnings).")
     }
     
     func listVehicles(completion: ([String]) -> ()) {
@@ -202,23 +202,23 @@ let vehicles: [Vehicle] = [
 // MARK: CHECK IN - Check that vehicles have been correctly inserted
 vehicles.forEach { vehicle in
     mercadoParking.checkInVehicle(vehicle) { isInserted in
-        print(isInserted ? "Welcome to MercadoParking!" : "Sorry, the check-in failed")
+        print(isInserted ? "✅ Welcome \(vehicle.type) with plate \(vehicle.plate) to MercadoParking! " : "😔 Sorry, the check-in failed.")
     }
 }
 
 // MARK: CHECK OUT - Check out vehicle and get total fee
 // Checkout vehicle without discount card
 mercadoParking.checkOutVehicle(vehicles[1].plate) { totalFee in
-    print("Your fee is $\(totalFee). Come back soon")
+    print("🧾 Your fee is $\(totalFee). Come back soon! 👋")
 } onError: {
-    print("Sorry, the check-out failed")
+    print("😔 Sorry, the check-out failed.")
 }
 
 // Checkout vehicle with discount card
 mercadoParking.checkOutVehicle(vehicles[5].plate) { totalFee in
-    print("Your fee is $\(totalFee). Come back soon")
+    print("🧾 Your fee is $\(totalFee). Come back soon! 👋")
 } onError: {
-    print("Sorry, the check-out failed")
+    print("😔 Sorry, the check-out failed.")
 }
 
 // MARK: TOTAL EARNINGS - Get total earnings from check out vehicles
@@ -227,10 +227,14 @@ mercadoParking.showTotalEarnings()
 // MARK: LIST VEHICLES - List parked vehicle plates
 mercadoParking.listVehicles { parkedVehiclePlates in
     if parkedVehiclePlates.count > 0 {
-        parkedVehiclePlates.forEach { vehiclePlate in
-            print("Parked vehicle plate: \(vehiclePlate)")
+        for (index, plate) in parkedVehiclePlates.enumerated() {
+            print("\(index + 1). Parked vehicle plate: \(plate).")
         }
+        
+//        parkedVehiclePlates.forEach { vehiclePlate in
+//            print("Parked vehicle plate: \(vehiclePlate)")
+//        }
     } else {
-        print("There are still no vehicles parked in MercadoParking")
+        print("🛑 There are no vehicles parked in MercadoParking.")
     }
 }
