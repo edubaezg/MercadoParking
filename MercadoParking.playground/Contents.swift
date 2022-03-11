@@ -200,6 +200,7 @@ let vehicles: [Vehicle] = [
 ]
 
 // MARK: CHECK IN - Check that vehicles have been correctly inserted
+print("************ CHECK IN VEHICLES ************")
 vehicles.forEach { vehicle in
     mercadoParking.checkInVehicle(vehicle) { isInserted in
         print(isInserted ? "✅ Welcome \(vehicle.type) with plate \(vehicle.plate) to MercadoParking! " : "😔 Sorry, the check-in failed.")
@@ -207,6 +208,7 @@ vehicles.forEach { vehicle in
 }
 
 // MARK: CHECK OUT - Check out vehicle and get total fee
+print("\n************ CHECK OUT VEHICLES ************")
 // Checkout vehicle without discount card
 mercadoParking.checkOutVehicle(vehicles[1].plate) { totalFee in
     print("🧾 Your fee is $\(totalFee). Come back soon! 👋")
@@ -222,18 +224,16 @@ mercadoParking.checkOutVehicle(vehicles[5].plate) { totalFee in
 }
 
 // MARK: TOTAL EARNINGS - Get total earnings from check out vehicles
+print("\n************ TOTAL EARNINGS ************")
 mercadoParking.showTotalEarnings()
 
 // MARK: LIST VEHICLES - List parked vehicle plates
+print("\n************ LIST PARKED VEHICLES ************")
 mercadoParking.listVehicles { parkedVehiclePlates in
     if parkedVehiclePlates.count > 0 {
         for (index, plate) in parkedVehiclePlates.enumerated() {
             print("\(index + 1). Parked vehicle plate: \(plate).")
         }
-        
-//        parkedVehiclePlates.forEach { vehiclePlate in
-//            print("Parked vehicle plate: \(vehiclePlate)")
-//        }
     } else {
         print("🛑 There are no vehicles parked in MercadoParking.")
     }
