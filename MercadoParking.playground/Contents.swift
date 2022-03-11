@@ -6,6 +6,8 @@ enum ParkingSettings: Int {
     case maxVehicles = 20
     case initialHoursInMinutes = 120
     case additionalTimeBlockInMinutes = 15
+    // Additional fee every 15 minutes after first 2 hours
+    case additionalTimeBlock = 5
 }
 
 // Settings for discount card
@@ -13,26 +15,16 @@ enum DiscountCardSettings: Int {
     case discountPercentage = 15
 }
 
-// Fee for each vehicle type
-enum Fee: Int {
-    // First 2 hours fee
-    case car = 20
-    case motorcycle = 15
-    case miniBus = 25
-    case bus = 30
-    // Additional fee every 15 minutes after first 2 hours
-    case additionalTimeBlock = 5
-}
-
+// Vehicle types with fee for each vehicle
 enum VehicleType {
     case car, motorcycle, miniBus, bus
     
     var hourFee: Int {
         switch self {
-        case .car: return Fee.car.rawValue
-        case .motorcycle: return Fee.motorcycle.rawValue
-        case .miniBus: return Fee.miniBus.rawValue
-        case .bus: return Fee.bus.rawValue
+        case .car: return 20
+        case .motorcycle: return 15
+        case .miniBus: return 25
+        case .bus: return 30
         }
     }
 }
@@ -109,7 +101,7 @@ extension Parking {
         var totalFee: Int = type.hourFee
         let initialHoursInMinutes: Int = ParkingSettings.initialHoursInMinutes.rawValue
         let additionalTimeBlockInMinutes: Int = ParkingSettings.additionalTimeBlockInMinutes.rawValue
-        let additionalTimeBlockFee = Fee.additionalTimeBlock.rawValue
+        let additionalTimeBlockFee = ParkingSettings.additionalTimeBlock.rawValue
         let discountCardPercentage = DiscountCardSettings.discountPercentage.rawValue
         
         // If parked time is grater than initial hours, calculate additional time block
