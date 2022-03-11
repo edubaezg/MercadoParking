@@ -17,7 +17,7 @@ enum DiscountCardSettings: Int {
 enum Fee: Int {
     // First 2 hours fee
     case car = 20
-    case moto = 15
+    case motorcycle = 15
     case miniBus = 25
     case bus = 30
     // Additional fee every 15 minutes after first 2 hours
@@ -25,12 +25,12 @@ enum Fee: Int {
 }
 
 enum VehicleType {
-    case car, moto, miniBus, bus
+    case car, motorcycle, miniBus, bus
     
     var hourFee: Int {
         switch self {
         case .car: return Fee.car.rawValue
-        case .moto: return Fee.moto.rawValue
+        case .motorcycle: return Fee.motorcycle.rawValue
         case .miniBus: return Fee.miniBus.rawValue
         case .bus: return Fee.bus.rawValue
         }
@@ -162,7 +162,7 @@ struct Vehicle: Parkable, Hashable {
         hasher.combine(plate)
     }
     
-    static func ==(lhs: Vehicle, rhs: Vehicle) -> Bool {
+    static func == (lhs: Vehicle, rhs: Vehicle) -> Bool {
         return lhs.plate == rhs.plate
     }
     
@@ -182,19 +182,19 @@ var mercadoParking = Parking()
 let vehicles: [Vehicle] = [
     // Register 20 vehicles to parking
     Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_001"),
-    Vehicle(plate: "B222BBB", type: VehicleType.moto, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "B222BBB", type: VehicleType.motorcycle, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "CC333CC", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "DD444DD", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_002"),
     Vehicle(plate: "AA111BB", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_003"),
-    Vehicle(plate: "B222CCC", type: VehicleType.moto, checkInTime: Date(), discountCard: "DISCOUNT_CARD_004"),
+    Vehicle(plate: "B222CCC", type: VehicleType.motorcycle, checkInTime: Date(), discountCard: "DISCOUNT_CARD_004"),
     Vehicle(plate: "CC333DD", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "DD444EE", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_005"),
     Vehicle(plate: "AA111CC", type: VehicleType.car, checkInTime: Date(), discountCard: nil),
-    Vehicle(plate: "B222DDD", type: VehicleType.moto, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "B222DDD", type: VehicleType.motorcycle, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "CC333EE", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "DD444GG", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_006"),
     Vehicle(plate: "AA111DD", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_007"),
-    Vehicle(plate: "B222EEE", type: VehicleType.moto, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "B222EEE", type: VehicleType.motorcycle, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "CC333FF", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "FF666FF", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "GG354JK", type: VehicleType.miniBus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_008"),
