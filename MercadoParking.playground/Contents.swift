@@ -54,9 +54,10 @@ struct Parking {
     // Vehicles is defined as a Set because a set cannot contain duplicates,
     // just like Parking can not have duplicate vehicles.
     
-    // MARK: Properties
+    // MARK: Parking Properties
     var vehicles: Set<Vehicle> = []
     let maxVehicles: Int = ParkingSettings.maxVehicles.rawValue
+    var totalEarnings = (vehiclesCheckedOut: 0, cummulativeEarnings: 0)
 }
 
 // MARK: Parking Methods
@@ -98,6 +99,9 @@ extension Parking {
         // If the vehicle exists, remove the vehicle from Parking, and call the onSuccess handler.
         vehicles.remove(vehicle)
         onSuccess(totalFee)
+        // Add a vehicle to the checked out vehicles count and the earnings to the total earnings count.
+        totalEarnings.vehiclesCheckedOut += 1
+        totalEarnings.cummulativeEarnings += totalFee
     }
     
     func calculateFee(type: VehicleType, parkedTime: Int, hasDiscountCard: Bool) -> Int {
@@ -129,6 +133,10 @@ extension Parking {
         }
 
         return totalFee
+    }
+    
+    func showTotalEarnings() {
+        print("\(totalEarnings.vehiclesCheckedOut) vehicles have checkedOut and have earnings of $\(totalEarnings.cummulativeEarnings)")
     }
     
     func listVehicles(completion: ([String]?) -> ()) {
@@ -221,3 +229,6 @@ mercadoParking.listVehicles { parkedVehiclePlate in
     guard let parkedVehiclePlate = parkedVehiclePlate else { return }
     print("parkedVehiclePlate \(parkedVehiclePlate)")
 }
+
+// Test admin functions
+mercadoParking.showTotalEarnings()
