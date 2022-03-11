@@ -6,6 +6,8 @@ enum ParkingSettings: Int {
     case maxVehicles = 20
     case initialHoursInMinutes = 120
     case additionalTimeBlockInMinutes = 15
+    // Additional fee every 15 minutes after first 2 hours
+    case additionalTimeBlock = 5
 }
 
 // Settings for discount card
@@ -13,26 +15,16 @@ enum DiscountCardSettings: Int {
     case discountPercentage = 15
 }
 
-// Fee for each vehicle type
-enum Fee: Int {
-    // First 2 hours fee
-    case car = 20
-    case moto = 15
-    case miniBus = 25
-    case bus = 30
-    // Additional fee every 15 minutes after first 2 hours
-    case additionalTimeBlock = 5
-}
-
+// Vehicle types with fee for each vehicle
 enum VehicleType {
-    case car, moto, miniBus, bus
+    case car, motorcycle, miniBus, bus
     
     var hourFee: Int {
         switch self {
-        case .car: return Fee.car.rawValue
-        case .moto: return Fee.moto.rawValue
-        case .miniBus: return Fee.miniBus.rawValue
-        case .bus: return Fee.bus.rawValue
+        case .car: return 20
+        case .motorcycle: return 15
+        case .miniBus: return 25
+        case .bus: return 30
         }
     }
 }
@@ -77,8 +69,7 @@ extension Parking {
         }
         
         // If the vehicle is correctly checked-in, insert vehicle and call the completion handler.
-        vehicles.insert(vehicle)
-        onFinish(true)
+        onFinish(vehicles.insert(vehicle).inserted)
     }
     
     // Method has to be declared as mutating in order to be able to modify the vehicles Set.
@@ -109,7 +100,7 @@ extension Parking {
         var totalFee: Int = type.hourFee
         let initialHoursInMinutes: Int = ParkingSettings.initialHoursInMinutes.rawValue
         let additionalTimeBlockInMinutes: Int = ParkingSettings.additionalTimeBlockInMinutes.rawValue
-        let additionalTimeBlockFee = Fee.additionalTimeBlock.rawValue
+        let additionalTimeBlockFee = ParkingSettings.additionalTimeBlock.rawValue
         let discountCardPercentage = DiscountCardSettings.discountPercentage.rawValue
         
         // If parked time is grater than initial hours, calculate additional time block
@@ -137,7 +128,7 @@ extension Parking {
     }
     
     func showTotalEarnings() {
-        print("\(totalEarnings.vehiclesCheckedOut) vehicles have checked out and have earnings of $\(totalEarnings.cummulativeEarnings)")
+        print("💰 \(totalEarnings.vehiclesCheckedOut) vehicles have checked out and have earnings of $\(totalEarnings.cummulativeEarnings).")
     }
     
     func listVehicles(completion: ([String]) -> ()) {
@@ -162,7 +153,7 @@ struct Vehicle: Parkable, Hashable {
         hasher.combine(plate)
     }
     
-    static func ==(lhs: Vehicle, rhs: Vehicle) -> Bool {
+    static func == (lhs: Vehicle, rhs: Vehicle) -> Bool {
         return lhs.plate == rhs.plate
     }
     
@@ -182,19 +173,19 @@ var mercadoParking = Parking()
 let vehicles: [Vehicle] = [
     // Register 20 vehicles to parking
     Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_001"),
-    Vehicle(plate: "B222BBB", type: VehicleType.moto, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "B222BBB", type: VehicleType.motorcycle, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "CC333CC", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "DD444DD", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_002"),
     Vehicle(plate: "AA111BB", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_003"),
-    Vehicle(plate: "B222CCC", type: VehicleType.moto, checkInTime: Date(), discountCard: "DISCOUNT_CARD_004"),
+    Vehicle(plate: "B222CCC", type: VehicleType.motorcycle, checkInTime: Date(), discountCard: "DISCOUNT_CARD_004"),
     Vehicle(plate: "CC333DD", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "DD444EE", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_005"),
     Vehicle(plate: "AA111CC", type: VehicleType.car, checkInTime: Date(), discountCard: nil),
-    Vehicle(plate: "B222DDD", type: VehicleType.moto, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "B222DDD", type: VehicleType.motorcycle, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "CC333EE", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "DD444GG", type: VehicleType.bus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_006"),
     Vehicle(plate: "AA111DD", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_007"),
-    Vehicle(plate: "B222EEE", type: VehicleType.moto, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "B222EEE", type: VehicleType.motorcycle, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "CC333FF", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "FF666FF", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "GG354JK", type: VehicleType.miniBus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_008"),
@@ -209,37 +200,41 @@ let vehicles: [Vehicle] = [
 ]
 
 // MARK: CHECK IN - Check that vehicles have been correctly inserted
+print("************ CHECK IN VEHICLES ************")
 vehicles.forEach { vehicle in
     mercadoParking.checkInVehicle(vehicle) { isInserted in
-        print(isInserted ? "Welcome to MercadoParking!" : "Sorry, the check-in failed")
+        print(isInserted ? "✅ Welcome \(vehicle.type) with plate \(vehicle.plate) to MercadoParking! " : "😔 Sorry, the check-in failed.")
     }
 }
 
 // MARK: CHECK OUT - Check out vehicle and get total fee
+print("\n************ CHECK OUT VEHICLES ************")
 // Checkout vehicle without discount card
 mercadoParking.checkOutVehicle(vehicles[1].plate) { totalFee in
-    print("Your fee is $\(totalFee). Come back soon")
+    print("🧾 Your fee is $\(totalFee). Come back soon! 👋")
 } onError: {
-    print("Sorry, the check-out failed")
+    print("😔 Sorry, the check-out failed.")
 }
 
 // Checkout vehicle with discount card
 mercadoParking.checkOutVehicle(vehicles[5].plate) { totalFee in
-    print("Your fee is $\(totalFee). Come back soon")
+    print("🧾 Your fee is $\(totalFee). Come back soon! 👋")
 } onError: {
-    print("Sorry, the check-out failed")
+    print("😔 Sorry, the check-out failed.")
 }
 
 // MARK: TOTAL EARNINGS - Get total earnings from check out vehicles
+print("\n************ TOTAL EARNINGS ************")
 mercadoParking.showTotalEarnings()
 
 // MARK: LIST VEHICLES - List parked vehicle plates
+print("\n************ LIST PARKED VEHICLES ************")
 mercadoParking.listVehicles { parkedVehiclePlates in
     if parkedVehiclePlates.count > 0 {
-        parkedVehiclePlates.forEach { vehiclePlate in
-            print("Parked vehicle plate: \(vehiclePlate)")
+        for (index, plate) in parkedVehiclePlates.enumerated() {
+            print("\(index + 1). Parked vehicle plate: \(plate).")
         }
     } else {
-        print("There are still no vehicles parked in MercadoParking")
+        print("🛑 There are no vehicles parked in MercadoParking.")
     }
 }
