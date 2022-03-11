@@ -69,8 +69,7 @@ extension Parking {
         }
         
         // If the vehicle is correctly checked-in, insert vehicle and call the completion handler.
-        vehicles.insert(vehicle)
-        onFinish(true)
+        onFinish(vehicles.insert(vehicle).inserted)
     }
     
     // Method has to be declared as mutating in order to be able to modify the vehicles Set.
