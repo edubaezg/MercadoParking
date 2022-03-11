@@ -1,12 +1,26 @@
 import Foundation
 
 // MARK: - Enums
-// Hour fee for each vehicle type
-enum HourFee: Int {
+// Global settings for MercadoParking
+enum ParkingSettings: Int {
+    case maxVehicles = 20
+    case initialHoursInMinutes = 120
+    case additionalTimeBlockInMinutes = 15
+}
+
+enum DiscountCardSettings: Int {
+    case discountPercentage = 15
+}
+
+// Fee for each vehicle type
+enum Fee: Int {
+    // First 2 hours fee
     case car = 20
     case moto = 15
     case miniBus = 25
     case bus = 30
+    // Additional fee every 15 minutes after first 2 hours
+    case additionalTimeBlock = 5
 }
 
 enum VehicleType {
@@ -14,10 +28,10 @@ enum VehicleType {
     
     var hourFee: Int {
         switch self {
-        case .car: return HourFee.car.rawValue
-        case .moto: return HourFee.moto.rawValue
-        case .miniBus: return HourFee.miniBus.rawValue
-        case .bus: return HourFee.bus.rawValue
+        case .car: return Fee.car.rawValue
+        case .moto: return Fee.moto.rawValue
+        case .miniBus: return Fee.miniBus.rawValue
+        case .bus: return Fee.bus.rawValue
         }
     }
 }
@@ -32,6 +46,9 @@ protocol Parkable {
     // discountCard is an optional property, since a vehicle may or may not have a discount card.
     var discountCard: String? { get }
     var parkedTime: Int { get }
+    
+    // MARK: Methods
+    func calculateFee(hasDiscount: Bool) -> Int
 }
 
 // MARK: - Structs
@@ -42,11 +59,11 @@ struct Parking {
     
     // MARK: Properties
     var vehicles: Set<Vehicle> = []
-    let maxVehicles: Int = 20
+    let maxVehicles: Int = ParkingSettings.maxVehicles.rawValue
     
     // MARK: Methods
     mutating func checkInVehicle(_ vehicle: Vehicle, onFinish: (Bool) -> Void) {
-        //Check if there's space available in the Parking.
+        // Check if there's space available in the Parking.
         guard vehicles.count < maxVehicles else {
             onFinish(false)
             return
@@ -62,10 +79,27 @@ struct Parking {
         vehicles.insert(vehicle)
         onFinish(true)
     }
+    
+    // Method has to be declared as mutating in order to be able to modify the vehicles Set.
+    mutating func checkOutVehicle(_ plate: String, onSuccess: (Int) -> Void, onError: () -> Void) {
+        
+        // Check if there is a vehicle parked with the received plate
+        guard let vehicle = vehicles.first(where: { $0.plate == plate }) else {
+            onError()
+            return
+        }
+        
+        // Calculate fee for check out
+        let totalFee = vehicle.calculateFee(hasDiscount: vehicle.discountCard != nil)
+        
+        // If the vehicle exists, remove the vehicle from Parking, and call the onSuccess handler.
+        vehicles.remove(vehicle)
+        onSuccess(totalFee)
+    }
 }
 
 struct Vehicle: Parkable, Hashable {
-
+    
     // Properties must be added both in the protocol and the structure that implements it,
     // so that the structure conforms to the protocol.
     
@@ -83,8 +117,10 @@ struct Vehicle: Parkable, Hashable {
     static func ==(lhs: Vehicle, rhs: Vehicle) -> Bool {
         return lhs.plate == rhs.plate
     }
+    
 }
 
+// MARK: Computed properties
 extension Vehicle {
     // Computed property that calculates the time elapsed since check-in
     var parkedTime: Int {
@@ -92,10 +128,40 @@ extension Vehicle {
     }
 }
 
+// MARK: Methods
+extension Vehicle {
+    func calculateFee(hasDiscount: Bool) -> Int {
+        var totalFee: Int = type.hourFee
+        let initialHoursInMinutes: Int = ParkingSettings.initialHoursInMinutes.rawValue
+        let additionalTimeBlockInMinutes: Int = ParkingSettings.additionalTimeBlockInMinutes.rawValue
+        let additionalTimeBlockFee = Fee.additionalTimeBlock.rawValue
+        
+        // If parked time is grater than initial hours, calculate additional time block
+        if parkedTime > initialHoursInMinutes {
+            // Get remaining minutes without initial hours
+            let remainingMinutes = parkedTime - initialHoursInMinutes
+            
+            // Get additional time blocks
+            let additionalTimeBlock = Double(remainingMinutes) / Double(additionalTimeBlockInMinutes)
+            
+            // Get additional time blocks rounded up
+            let additionalTimeBlockRounded = Int(additionalTimeBlock.rounded(.up))
+            
+            // Calculate total fee plus total fee for additional time blocks
+            totalFee += additionalTimeBlockRounded * additionalTimeBlockFee
+        }
+        
+        // TODO: Calcular descuento si hasDiscount es true
+        print("hasDiscount \(hasDiscount)")
+        return totalFee
+    }
+}
+
 // MARK: - Actions
 var mercadoParking = Parking()
 
 let vehicles: [Vehicle] = [
+    // Register 20 vehicles to parking
     Vehicle(plate: "AA111AA", type: VehicleType.car, checkInTime: Date(), discountCard: "DISCOUNT_CARD_001"),
     Vehicle(plate: "B222BBB", type: VehicleType.moto, checkInTime: Date(), discountCard: nil),
     Vehicle(plate: "CC333CC", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
@@ -118,8 +184,9 @@ let vehicles: [Vehicle] = [
     Vehicle(plate: "TG498KS", type: VehicleType.miniBus, checkInTime: Date(), discountCard: "DISCOUNT_CARD_010"),
     // Register vehicle with repeated plate
     Vehicle(plate: "TG498KS", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
-    Vehicle(plate: "TG498K5", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
-    Vehicle(plate: "TG498K8", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil)
+    // Register extra vehicles for full parking lot
+    Vehicle(plate: "SC439FF", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil),
+    Vehicle(plate: "GB448KR", type: VehicleType.miniBus, checkInTime: Date(), discountCard: nil)
 ]
 
 // Check that vehicles have been correctly inserted
@@ -129,8 +196,10 @@ vehicles.forEach { vehicle in
     }
 }
 
-// Remove vehicle
-mercadoParking.vehicles.remove(vehicles[0])
-print(!mercadoParking.vehicles.contains(vehicles[1]))
+// Check out vehicle and get total fee
+mercadoParking.checkOutVehicle(vehicles[3].plate) { totalFee in
+    print("Your fee is $\(totalFee). Come back soon")
+} onError: {
+    print("Sorry, the check-out failed")
+}
 
-print(mercadoParking.vehicles.contains(vehicles[0]))
