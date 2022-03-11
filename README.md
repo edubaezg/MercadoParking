@@ -1,5 +1,5 @@
 # MercadoParking
 
-Swift challenge from the @mercadolibre IT Bootcamp - Wave 4.
+Swift challenge from the [@mercadolibre]( https://github.com/mercadolibre ) IT Bootcamp - Wave 4.
 
-Authors: @edubaezg - @MauroAlvarengaMELI
+Authors: [@edubaezg]( https://github.com/edubaezg ) - [@MauroAlvarengaMELI]( https://github.com/MauroAlvarengaMELI )
