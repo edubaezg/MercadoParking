@@ -92,7 +92,7 @@ extension Parking {
         let totalFee = calculateFee(
             type: vehicle.type,
             parkedTime: vehicle.parkedTime,
-            hasDiscount: vehicle.discountCard != nil
+            hasDiscountCard: vehicle.discountCard != nil
         )
         
         // If the vehicle exists, remove the vehicle from Parking, and call the onSuccess handler.
@@ -100,11 +100,12 @@ extension Parking {
         onSuccess(totalFee)
     }
     
-    func calculateFee(type: VehicleType, parkedTime: Int, hasDiscount: Bool) -> Int {
+    func calculateFee(type: VehicleType, parkedTime: Int, hasDiscountCard: Bool) -> Int {
         var totalFee: Int = type.hourFee
         let initialHoursInMinutes: Int = ParkingSettings.initialHoursInMinutes.rawValue
         let additionalTimeBlockInMinutes: Int = ParkingSettings.additionalTimeBlockInMinutes.rawValue
         let additionalTimeBlockFee = Fee.additionalTimeBlock.rawValue
+        let discountCardPercentage = DiscountCardSettings.discountPercentage.rawValue
         
         // If parked time is grater than initial hours, calculate additional time block
         if parkedTime > initialHoursInMinutes {
@@ -120,9 +121,13 @@ extension Parking {
             // Calculate total fee plus total fee for additional time blocks
             totalFee += additionalTimeBlockRounded * additionalTimeBlockFee
         }
-        
-        // TODO: Calcular descuento si hasDiscount es true
-        print("hasDiscount \(hasDiscount)")
+
+        // If the vehicle has a Discount Card, apply discount
+        if hasDiscountCard {
+            let discountAmount = (totalFee * discountCardPercentage) / 100
+            totalFee -= discountAmount
+        }
+
         return totalFee
     }
     
